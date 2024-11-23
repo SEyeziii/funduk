@@ -142,7 +142,12 @@ public:
 int main() {
     CDLList list1, list2;
     int choice, value;
-
+    
+    list2.addElement(2);
+    list2.addElement(1);
+    list2.addElement(8);
+    list2.addElement(-1);
+    
     do {
         std::cout << "\nMenu:\n";
         std::cout << "1. Add element to list\n";
