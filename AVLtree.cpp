@@ -1,8 +1,9 @@
-﻿
+
 #include <iostream>
 #include <string>
 #include <fstream>
 #include <tuple>
+
 struct Person {
     std::string fullName;
     std::string passport;
@@ -151,23 +152,62 @@ public:
     }
 };
 
+void displayMenu() {
+    std::cout << "Select an action:" << std::endl;
+    std::cout << "1. Add a new person" << std::endl;
+    std::cout << "2. Remove a person" << std::endl;
+    std::cout << "3. Search for a person" << std::endl;
+    std::cout << "4. Print (in order)" << std::endl;
+    std::cout << "5. Print (reverse order)" << std::endl;
+    std::cout << "6. Exit" << std::endl;
+}
+
 int main() {
     SimpleAVLTree tree = SimpleAVLTree::loadFromFile("data.txt");
+    int choice;
+    std::string fullName, passport;
 
-    std::cout << "In-order display:" << std::endl;
-    tree.display();
+    do {
+        displayMenu();
+        std::cout << "Your choice: ";
+        std::cin >> choice;
+        std::cin.ignore(); // Ignore the newline character left in the buffer
 
-    Person personToFind{ "A", "1234567890" };
-    tree.search(personToFind);
-
-    Person personToRemove{ "A", "1234567890" };
-    tree.remove(personToRemove);
-
-    std::cout << "After removal:" << std::endl;
-    tree.display();
-
-    std::cout << "Reverse order display:" << std::endl;
-    tree.displayReverse();
+        switch (choice) {
+        case 1:
+            std::cout << "Enter full name and passport number (Full Name, Passport Number): ";
+            std::getline(std::cin, fullName, ',');
+            std::getline(std::cin, passport);
+            tree.insert({ fullName, passport });
+            break;
+        case 2:
+            std::cout << "Enter full name and passport number to remove (Full Name, Passport Number): ";
+            std::getline(std::cin, fullName, ',');
+            std::getline(std::cin, passport);
+            tree.remove({ fullName, passport });
+            break;
+        case 3:
+            std::cout << "Enter full name and passport number to search (Full Name, Passport Number): ";
+            std::getline(std::cin, fullName, ',');
+            std::getline(std::cin, passport);
+            tree.search({ fullName, passport });
+            break;
+        case 4:
+            std::cout << "People list (in order):" << std::endl;
+            tree.display();
+            break;
+        case 5:
+            std::cout << "People list (reverse order):" << std::endl;
+            tree.displayReverse();
+            break;
+        case 6:
+            std::cout << "Exiting." << std::endl;
+            break;
+        default:
+            std::cout << "Invalid choice. Please try again." << std::endl;
+            break;
+        }
+    } while (choice != 6);
 
     return 0;
 }
