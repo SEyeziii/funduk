@@ -1,8 +1,8 @@
-
 #include <iostream>
 #include <string>
-#include <fstream>
 #include <tuple>
+#include <sstream>
+#include <vector>
 
 struct Person {
     std::string fullName;
@@ -26,24 +26,81 @@ struct Node {
     Person data;
     Node* left;
     Node* right;
+    int height;
 
-    Node(const Person& person) : data(person), left(nullptr), right(nullptr) {}
+    Node(const Person& person) : data(person), left(nullptr), right(nullptr), height(1) {}
 };
 
-class SimpleAVLTree {
+class AVLTree {
 private:
     Node* root;
 
-    void insert(Node*& node, const Person& person) {
-        if (!node) {
-            node = new Node(person);
-            return;
+    int height(Node* node) {
+        return node ? node->height : 0;
+    }
+
+    int balanceFactor(Node* node) {
+        return height(node->left) - height(node->right);
+    }
+
+    void updateHeight(Node* node) {
+        node->height = std::max(height(node->left), height(node->right)) + 1;
+    }
+
+    Node* rotateRight(Node* y) {
+        Node* x = y->left;
+        Node* T2 = x->right;
+        x->right = y;
+        y->left = T2;
+        updateHeight(y);
+        updateHeight(x);
+        return x;
+    }
+
+    Node* rotateLeft(Node* x) {
+        Node* y = x->right;
+        Node* T2 = y->left;
+        y->left = x;
+        x->right = T2;
+        updateHeight(x);
+        updateHeight(y);
+        return y;
+    }
+
+    Node* balance(Node* node) {
+        updateHeight(node);
+        int balance = balanceFactor(node);
+
+        if (balance > 1) {
+            if (balanceFactor(node->left) < 0) {
+                node->left = rotateLeft(node->left);
+            }
+            return rotateRight(node);
         }
 
-        if (person < node->data)
-            insert(node->left, person);
-        else if (node->data < person)
-            insert(node->right, person);
+        if (balance < -1) {
+            if (balanceFactor(node->right) > 0) {
+                node->right = rotateRight(node->right);
+            }
+            return rotateLeft(node);
+        }
+
+        return node;
+    }
+
+    Node* insert(Node* node, const Person& person) {
+        if (!node) {
+            return new Node(person);
+        }
+
+        if (person < node->data) {
+            node->left = insert(node->left, person);
+        }
+        else if (node->data < person) {
+            node->right = insert(node->right, person);
+        }
+
+        return balance(node);
     }
 
     Node* minValueNode(Node* node) {
@@ -56,22 +113,30 @@ private:
     Node* deleteNode(Node* node, const Person& person) {
         if (!node) return node;
 
-        if (person < node->data)
+        if (person < node->data) {
             node->left = deleteNode(node->left, person);
-        else if (node->data < person)
+        }
+        else if (node->data < person) {
             node->right = deleteNode(node->right, person);
+        }
         else {
-            if (!node->left)
-                return node->right;
-            else if (!node->right)
-                return node->left;
+            if (!node->left) {
+                Node* temp = node->right;
+                delete node;
+                return temp;
+            }
+            else if (!node->right) {
+                Node* temp = node->left;
+                delete node;
+                return temp;
+            }
 
             Node* temp = minValueNode(node->right);
             node->data = temp->data;
             node->right = deleteNode(node->right, temp->data);
         }
 
-        return node;
+        return balance(node);
     }
 
     void inOrder(Node* node) {
@@ -99,14 +164,14 @@ private:
     }
 
 public:
-    SimpleAVLTree() : root(nullptr) {}
+    AVLTree() : root(nullptr) {}
 
-    ~SimpleAVLTree() {
+    ~AVLTree() {
         clean(root);
     }
 
     void insert(const Person& person) {
-        insert(root, person);
+        root = insert(root, person);
     }
 
     void remove(const Person& person) {
@@ -126,35 +191,27 @@ public:
     }
 
     void display() {
-        inOrder(root);
+        if (root) {
+            inOrder(root);
+        }
+        else {
+            std::cout << "The tree is empty!" << std::endl;
+        }
     }
 
     void displayReverse() {
-        reverseOrder(root);
-    }
-
-    static SimpleAVLTree loadFromFile(const std::string& filename) {
-        SimpleAVLTree tree;
-        std::ifstream file(filename);
-        std::string line;
-
-        while (std::getline(file, line)) {
-            size_t commaPos = line.find(',');
-            if (commaPos != std::string::npos) {
-                Person person;
-                person.fullName = line.substr(0, commaPos);
-                person.passport = line.substr(commaPos + 1);
-                tree.insert(person);
-            }
+        if (root) {
+            reverseOrder(root);
         }
-
-        return tree;
+        else {
+            std::cout << "The tree is empty!" << std::endl;
+        }
     }
 };
 
 void displayMenu() {
     std::cout << "Select an action:" << std::endl;
-    std::cout << "1. Add a new person" << std::endl;
+    std::cout << "1. Add multiple people" << std::endl;
     std::cout << "2. Remove a person" << std::endl;
     std::cout << "3. Search for a person" << std::endl;
     std::cout << "4. Print (in order)" << std::endl;
@@ -162,8 +219,25 @@ void displayMenu() {
     std::cout << "6. Exit" << std::endl;
 }
 
+std::vector<Person> parseInput(const std::string& input) {
+    std::vector<Person> people;
+    std::istringstream stream(input);
+    std::string line;
+
+    while (std::getline(stream, line)) {
+        size_t commaPos = line.find(',');
+        if (commaPos != std::string::npos) {
+            Person person;
+            person.fullName = line.substr(0, commaPos);
+            person.passport = line.substr(commaPos + 1);
+            people.push_back(person);
+        }
+    }
+    return people;
+}
+
 int main() {
-    SimpleAVLTree tree = SimpleAVLTree::loadFromFile("data.txt");
+    AVLTree tree;
     int choice;
     std::string fullName, passport;
 
@@ -171,15 +245,23 @@ int main() {
         displayMenu();
         std::cout << "Your choice: ";
         std::cin >> choice;
-        std::cin.ignore(); // Ignore the newline character left in the buffer
+        std::cin.ignore(); // Игнорируем символ новой строки, оставшийся в буфере
 
         switch (choice) {
-        case 1:
-            std::cout << "Enter full name and passport number (Full Name, Passport Number): ";
-            std::getline(std::cin, fullName, ',');
-            std::getline(std::cin, passport);
-            tree.insert({ fullName, passport });
+        case 1: {
+            std::cout << "Enter multiple people (each person on a new line, separate Full Name and Passport Number by comma):" << std::endl;
+            std::string input;
+            std::string line;
+            while (std::getline(std::cin, line)) {
+                if (line.empty()) break;
+                input += line + "\n";
+            }
+            std::vector<Person> people = parseInput(input);
+            for (const auto& person : people) {
+                tree.insert(person);
+            }
             break;
+        }
         case 2:
             std::cout << "Enter full name and passport number to remove (Full Name, Passport Number): ";
             std::getline(std::cin, fullName, ',');
