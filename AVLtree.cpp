@@ -544,15 +544,15 @@ void balanceR(AVLTree*& root, bool& h)
     }
 }
 
-// Функция поиска наименьшего элемента справа
-AVLTree* del(AVLTree*& root, bool& h)
+// Функция поиска наименьшего элемента справа (в правом поддереве)
+AVLTree* delRightMin(AVLTree*& root, bool& h)
 {
-    if (root->left != nullptr)  // идем в левое поддерево для поиска минимального элемента
+    if (root->right != nullptr)  // идем в правое поддерево для поиска минимального элемента
     {
-        AVLTree* r = del(root->left, h);
+        AVLTree* r = delRightMin(root->right, h);
         if (h)
         {
-            balanceL(root, h);
+            balanceR(root, h);
         }
         return r;
     }
@@ -560,17 +560,16 @@ AVLTree* del(AVLTree*& root, bool& h)
     {
         AVLTree* q;
         q = root;
-        root = root->right;
+        root = root->left;
         h = true;
         return q;
     }
 }
 
 
-// Функция удаления узла по Вирту
+// Функция удаления узла 
 void deleteNode(AVLTree*& root, const treeData& key, bool& h)
 {
-
     if (root == nullptr)
     {
         return;
@@ -581,11 +580,9 @@ void deleteNode(AVLTree*& root, const treeData& key, bool& h)
     if (key < root->key)
     {
         deleteNode(root->left, key, h);
+        if (h)
         {
-            if (h)
-            {
-                balanceL(root, h);
-            }
+            balanceL(root, h);
         }
     }
     else if (root->key < key)
@@ -616,12 +613,12 @@ void deleteNode(AVLTree*& root, const treeData& key, bool& h)
         }
         else
         {
-            q = del(root->left, h);
+            q = delRightMin(root->right, h);  
             root->key = q->key;
             root->currList = q->currList;
             if (h)
             {
-                balanceL(root, h);
+                balanceR(root, h);
             }
         }
     }
