@@ -243,10 +243,11 @@ public:
 // Структура ключа дерева
 struct treeData
 {
-    string fullName;
-    string surname;
-    string name;
-    string patronymic;
+    std::string fullName;
+    std::string surname;
+    std::string name;
+    std::string patronymic;
+    int passportNumber;  // Номер паспорта
 
     bool operator < (const treeData& key) const
     {
@@ -266,14 +267,13 @@ struct treeData
         {
             return patronymic < key.patronymic;
         }
-
-        return false;
+        return passportNumber < key.passportNumber;
     }
 
     bool operator == (const treeData& key) const
     {
         return ((fullName == key.fullName) && (surname == key.surname) &&
-            (name == key.name) && (patronymic == key.patronymic));
+            (name == key.name) && (patronymic == key.patronymic) && (passportNumber == key.passportNumber));
     }
 };
 
@@ -292,10 +292,9 @@ struct AVLTree
     }
 };
 
-// Добавление элемента по Вирту
+//Добавление нового ключа
 void add(AVLTree*& root, const treeData& key, bool& h, int& value)
 {
-
     AVLTree* p1, * p2;
 
     // Вставка
@@ -307,7 +306,7 @@ void add(AVLTree*& root, const treeData& key, bool& h, int& value)
     else if (key < root->key)
     {
         add(root->left, key, h, value);
-        if (h) // Выросла левая ветвь
+        if (h)
         {
             if (root->balanceFactor == 1)
             {
@@ -318,17 +317,17 @@ void add(AVLTree*& root, const treeData& key, bool& h, int& value)
             {
                 root->balanceFactor = -1;
             }
-            else // Восстановление баланса
+            else
             {
                 p1 = root->left;
-                if (p1->balanceFactor == -1) // Одинарная LL-ротация
+                if (p1->balanceFactor == -1)
                 {
                     root->left = p1->right;
                     p1->right = root;
                     root->balanceFactor = 0;
                     root = p1;
                 }
-                else // Двойная LR-ротация
+                else
                 {
                     p2 = p1->right;
                     p1->right = p2->left;
@@ -361,8 +360,7 @@ void add(AVLTree*& root, const treeData& key, bool& h, int& value)
     else if (root->key < key)
     {
         add(root->right, key, h, value);
-
-        if (h) // Выросла правая ветвь
+        if (h)
         {
             if (root->balanceFactor == -1)
             {
@@ -373,17 +371,17 @@ void add(AVLTree*& root, const treeData& key, bool& h, int& value)
             {
                 root->balanceFactor = 1;
             }
-            else // Восстановление баланса
+            else
             {
                 p1 = root->right;
-                if (p1->balanceFactor == 1) // Одинарная RR-ротация
+                if (p1->balanceFactor == 1)
                 {
                     root->right = p1->left;
                     p1->left = root;
                     root->balanceFactor = 0;
                     root = p1;
                 }
-                else // Двойная RL-ротация
+                else
                 {
                     p2 = p1->left;
                     p1->left = p2->right;
@@ -413,7 +411,7 @@ void add(AVLTree*& root, const treeData& key, bool& h, int& value)
             }
         }
     }
-    else if (root->key == key) // Ключ уже существует
+    else if (root->key == key)
     {
         root->currList.add(value);
         h = false;
@@ -629,19 +627,17 @@ void deleteNode(AVLTree*& root, const treeData& key, bool& h)
     }
 }
 
-// Поиск элементов по заданному ключу
+// Функция поиска по ключу
 void searchData(AVLTree*& root, const treeData& key)
 {
     if (root == nullptr)
     {
-        cout << endl;
-        cout << "*** Node not found ***" << endl;
+        std::cout << "*** Node not found ***" << std::endl;
         return;
     }
     else if (key == root->key)
     {
-        cout << endl;
-        cout << "*** Node was found ***" << endl;
+        std::cout << "*** Node was found ***" << std::endl;
         return;
     }
     if (key < root->key)
@@ -653,6 +649,7 @@ void searchData(AVLTree*& root, const treeData& key)
         searchData(root->right, key);
     }
 }
+
 
 // Очистка дерева
 void clearTree(AVLTree*& root, int& value)
@@ -766,67 +763,63 @@ void outInFile(AVLTree*& root, ofstream& file_output)
 treeData createKey()
 {
     treeData key;
-
     bool flag = true;
 
     while (flag)
     {
-        cout << "Type your Surname: ";
-        cin >> key.surname;
+        std::cout << "Type your Surname: ";
+        std::cin >> key.surname;
         if (isString(key.surname))
         {
             flag = false;
         }
         else
         {
-            cout << "*** ERROR::Incorrect Surname ***" << endl;
+            std::cout << "*** ERROR::Incorrect Surname ***" << std::endl;
         }
     }
 
     flag = true;
-
     while (flag)
     {
-        cout << "Type your Name: ";
-        cin >> key.name;
+        std::cout << "Type your Name: ";
+        std::cin >> key.name;
         if (isString(key.name))
         {
             flag = false;
         }
         else
         {
-            cout << "*** ERROR::Incorrect Name ***" << endl;
+            std::cout << "*** ERROR::Incorrect Name ***" << std::endl;
         }
     }
 
     flag = true;
-
     while (flag)
     {
-        cout << "Type your Patronymic: ";
-        cin >> key.patronymic;
+        std::cout << "Type your Patronymic: ";
+        std::cin >> key.patronymic;
         if (isString(key.patronymic))
         {
             flag = false;
         }
         else
         {
-            cout << "*** ERROR::Incorrect Patronymic ***" << endl;
+            std::cout << "*** ERROR::Incorrect Patronymic ***" << std::endl;
         }
     }
 
     flag = true;
-
     while (flag)
     {
-        cout << "Type your FullName: ";
-        cin >> key.fullName;
+        std::cout << "Type your FullName (e.g., 'Surname Name Patronymic'): ";
+        std::cin >> key.fullName;
         if (isFullName(key.fullName))
         {
             if (key.fullName[0] != key.surname[0] || key.fullName[1] != key.name[0]
                 || key.fullName[2] != key.patronymic[0])
             {
-                cout << "*** ERROR::Incorrect FullName ***" << endl;
+                std::cout << "*** ERROR::Incorrect FullName ***" << std::endl;
             }
             else
             {
@@ -835,12 +828,29 @@ treeData createKey()
         }
         else
         {
-            cout << "*** ERROR::Incorrect FullName ***" << endl;
+            std::cout << "*** ERROR::Incorrect FullName ***" << std::endl;
         }
     }
+
+    flag = true;
+    while (flag)
+    {
+        std::cout << "Type your Passport Number: ";
+        std::cin >> key.passportNumber;
+        if (std::cin.fail())  // Проверка на числовое значение
+        {
+            std::cin.clear();
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            std::cout << "*** ERROR::Incorrect Passport Number (must be a number) ***" << std::endl;
+        }
+        else
+        {
+            flag = false;
+        }
+    }
+
     return key;
 }
-
 // Обход справа налево (симметричный)
 void rightLeftOrder(AVLTree*& root, ofstream& file)
 {
@@ -926,7 +936,7 @@ int main()
     fstream input;
     int value = 0;
 
-    cout << "-----------------***MENU***-----------------" << endl;
+   
     cout << "1 - to add your element to the tree" << endl;
     cout << "2 - Print all tree" << endl;
     cout << "3 - Find 1 element by key" << endl;
@@ -993,7 +1003,7 @@ int main()
         }
         case 5:
         {
-            input.open("input.txt");
+            input.open("C:/Users/крис/source/repos/CMakeProject4/CMakeProject4/input.txt");
             cout << "*** SUCCES::All files was imported ***" << endl;
             getFromFile(root, input, value, h);
             input.close();
